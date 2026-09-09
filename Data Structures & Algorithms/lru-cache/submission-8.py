@@ -1,0 +1,50 @@
+class Node:
+    def __init__(self, key: int):
+        self.key = key
+        self.prev = None
+        self.next = None
+
+class LRUCache:
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}
+        self.head = Node(-1)
+        self.tail = Node(-1)
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def get(self, key: int) -> int:
+        if key not in self.cache:
+            return -1
+
+        node = self.cache[key][1]
+        node.prev.next = node.next
+        node.next.prev = node.prev
+
+        node.prev = self.tail.prev
+        self.tail.prev.next = node
+        self.tail.prev = node
+        node.next = self.tail
+        
+        return self.cache[key][0]
+
+    def put(self, key: int, value: int) -> None:
+        if self.get(key) != -1:
+            self.cache[key][0] = value
+        else:
+            node = Node(key)
+            self.cache[key] = [value, node]
+
+            node.prev = self.tail.prev
+            self.tail.prev.next = node
+            node.next = self.tail
+            self.tail.prev = node
+
+        if len(self.cache) > self.capacity:
+            to_remove = self.head.next.key
+
+            tmp = self.head.next.next
+            self.head.next = self.head.next.next
+            tmp.prev = self.head
+
+            self.cache.pop(to_remove)
